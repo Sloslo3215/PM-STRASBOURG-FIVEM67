@@ -2,35 +2,22 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Créer un Bulletin</title>
+  <title>Créer et Archiver un Bulletin</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    /* Style basique pour la page de création */
     body {
       font-family: 'Inter', sans-serif;
       margin: 0;
       padding: 0;
-      background: url('logoPM.png') no-repeat center center fixed;
-      background-size: 400px;
-      color: #2c3e50;
+      background: #f4f4f9;
+      color: #333;
       position: relative;
       min-height: 100vh;
     }
 
-    body::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.307);
-      z-index: -1;
-    }
-
     h1 {
       text-align: center;
-      color: #fafafa;
+      color: #333;
       padding: 20px;
       background-color: #003366;
       border-bottom: 4px solid #007BFF;
@@ -41,9 +28,9 @@
       padding: 30px;
       max-width: 600px;
       margin: auto;
-      background-color: rgba(255, 255, 255, 0.8);
+      background-color: rgba(255, 255, 255, 0.9);
       border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       margin-top: 30px;
     }
 
@@ -57,21 +44,21 @@
     }
 
     button {
-      background-color: #007BFF;
+      background-color: #28a745;
       color: white;
       cursor: pointer;
       font-size: 18px;
     }
 
     button:hover {
-      background-color: #0056b3;
+      background-color: #218838;
     }
 
   </style>
 </head>
 <body>
 
-  <h1>📑 Créer un Bulletin</h1>
+  <h1>📑 Créer et Archiver un Bulletin</h1>
 
   <div id="form-container">
     <form id="bulletinForm">
@@ -81,7 +68,7 @@
       <input type="date" id="date" required>
       <input type="text" id="debutService" placeholder="Début de service" required>
       <input type="text" id="finService" placeholder="Fin de service" required>
-      <button type="submit">Créer le Bulletin</button>
+      <button type="submit">Créer et Archiver le Bulletin</button>
     </form>
   </div>
 
@@ -104,15 +91,23 @@
         debutService,
         finService,
         timestamp: Date.now(),
-        archivé: false // Le bulletin n'est pas encore archivé
+        archivé: true // Le bulletin est directement archivé dès sa création
       };
 
-      let bulletins = JSON.parse(localStorage.getItem('bulletins') || '[]');
-      bulletins.push(bulletin);
-      localStorage.setItem('bulletins', JSON.stringify(bulletins));
+      // Récupérer les bulletins archivés depuis localStorage, ou initialiser une liste vide
+      let bulletinsArchives = JSON.parse(localStorage.getItem('archives') || '[]');
 
-      alert('Bulletin créé avec succès!');
-      window.location.href = 'index.html'; // Redirige vers la page principale ou liste des bulletins
+      // Ajouter le nouveau bulletin à la liste des archives
+      bulletinsArchives.push(bulletin);
+
+      // Sauvegarder la nouvelle liste des bulletins archivés dans localStorage
+      localStorage.setItem('archives', JSON.stringify(bulletinsArchives));
+
+      // Informer l'utilisateur que le bulletin a été créé et archivé
+      alert('Bulletin créé et archivé avec succès!');
+
+      // Réinitialiser le formulaire
+      document.getElementById('bulletinForm').reset();
     });
   </script>
 
