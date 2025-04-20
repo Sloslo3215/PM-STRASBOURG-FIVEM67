@@ -2,230 +2,153 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Archives - Bulletins Enregistrés</title>
+  <title>Archives - Bulletins de Service</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Inter', sans-serif;
       margin: 0;
       padding: 0;
-      background: url('logoPM.png') no-repeat center center fixed;
-      background-size: 400px;
       color: #2c3e50;
-      position: relative;
-      min-height: 100vh;
+      background-color: #f1f1f1;
     }
 
-    body::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.307);
-      z-index: -1;
-    }
-
-    h1 {
-      text-align: center;
-      color: #fafafa;
-      padding: 20px;
+    header {
       background-color: #003366;
+      padding: 20px;
+      text-align: center;
       border-bottom: 4px solid #007BFF;
-      margin: 0;
     }
 
-    #bulletinList {
-      padding: 30px 20px;
+    header h1 {
+      margin: 0;
+      font-size: 26px;
+      color: #fafafa;
+    }
+
+    .container {
       max-width: 900px;
-      margin: auto;
-      background-color: rgba(255, 255, 255, 0.5);
+      margin: 50px auto;
+      padding: 30px 20px;
+      background-color: rgba(255, 255, 255, 0.9);
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      margin-top: 30px;
     }
 
     .bulletin {
-      background: white;
-      border-left: 5px solid #007BFF;
-      padding: 20px;
-      margin: 20px 0;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      position: relative;
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .bulletin h3 {
+      font-size: 20px;
       margin: 0;
-      color: #003366;
     }
 
     .bulletin small {
-      color: #555;
-      display: block;
-      margin-top: 5px;
+      color: #888;
+      font-size: 14px;
     }
 
     .details {
-      margin-top: 15px;
       display: none;
-      border-top: 1px solid #ccc;
-      padding-top: 10px;
-      white-space: normal;
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f9f9f9;
+      border-radius: 8px;
     }
 
     .voir-details {
       background-color: #007BFF;
       color: white;
       border: none;
-      padding: 6px 12px;
-      font-size: 14px;
-      border-radius: 6px;
+      border-radius: 5px;
+      padding: 8px 15px;
       cursor: pointer;
-      margin-top: 10px;
     }
 
     .voir-details:hover {
-      background-color: #0056b3;
+      background-color: #005bb5;
     }
 
-    .supprimer-bulletin {
-      background-color: #FF5733;
+    .tag {
+      background: linear-gradient(145deg, #1e3c72, #2a5298);
       color: white;
-      border: none;
-      padding: 6px 12px;
+      padding: 2px 8px;
+      border-radius: 14px;
+      margin: 4px 4px 0 0;
+      display: inline-flex;
+      align-items: center;
       font-size: 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
+      line-height: 1.2;
     }
 
-    .supprimer-bulletin:hover {
-      background-color: #C04E1A;
-    }
-
-    #confirmationMessage {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: #FF5733;
-      color: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      font-size: 16px;
-      text-align: center;
-      opacity: 0;
-      transition: opacity 0.3s ease-in-out;
-    }
-
-    #confirmationMessage.show {
-      display: block;
-      opacity: 1;
-    }
-
-    .confirmation-buttons {
-      margin-top: 10px;
-    }
-
-    .confirmation-button {
-      background-color: #0056b3;
-      color: white;
+    .tag button {
+      background: none;
       border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
+      color: white;
       cursor: pointer;
-      margin: 0 10px;
-    }
-
-    .confirmation-button:hover {
-      background-color: #003d8c;
-    }
-
-    @media screen and (max-width: 600px) {
-      #bulletinList {
-        padding: 20px;
-      }
+      margin-left: 6px;
+      font-size: 14px;
+      padding: 0;
     }
   </style>
 </head>
 <body>
 
-  <h1>📂 Archives des Bulletins</h1>
-  <div id="bulletinList"></div>
+  <header>
+    <h1>📂 Archives des Bulletins de Service - Police Municipale</h1>
+  </header>
 
-  <!-- Message de confirmation -->
-  <div id="confirmationMessage">
-    <p>Êtes-vous sûr de vouloir supprimer ce bulletin ?</p>
-    <div class="confirmation-buttons">
-      <button class="confirmation-button" onclick="confirmerSuppression()">Oui</button>
-      <button class="confirmation-button" onclick="annulerSuppression()">Non</button>
-    </div>
+  <div class="container">
+    <div id="bulletinList"></div>
   </div>
 
   <script>
-    const bulletinList = document.getElementById('bulletinList');
-    const confirmationMessage = document.getElementById('confirmationMessage');
-    let bulletins = JSON.parse(localStorage.getItem('bulletins') || '[]');
-    let bulletinIndexToDelete = null;
+    document.addEventListener('DOMContentLoaded', () => {
+        const bulletinList = document.getElementById('bulletinList');
+        let bulletins = JSON.parse(localStorage.getItem('bulletins') || '[]');
 
-    // Tri des bulletins
-    bulletins.sort((a, b) => b.timestamp - a.timestamp);
+        // Si aucun bulletin n'existe
+        if (bulletins.length === 0) {
+            bulletinList.innerHTML = "<p style='text-align:center;'>Aucun bulletin enregistré pour le moment.</p>";
+        } else {
+            // Tri des bulletins pour afficher le plus récent en premier
+            bulletins.sort((a, b) => b.timestamp - a.timestamp);
 
-    if (bulletins.length === 0) {
-      bulletinList.innerHTML = "<p style='text-align:center;'>Aucun bulletin enregistré pour le moment.</p>";
-    } else {
-      bulletins.forEach((b, index) => {
-        const contenuFormaté = b.contenu.replace(/\n/g, '<br>');
-        const div = document.createElement('div');
-        div.className = 'bulletin';
-        div.innerHTML = `
-          <h3>👮 ${b.titre} <span style="float:right; color:#888;">${b.identifiant}</span></h3>
-          <small>🕓 Enregistré le : ${b.date}</small>
-          <button class="voir-details" onclick="toggleDetails(${index})">Voir détails</button>
-          <div class="details" id="details-${index}">
-            <p><strong>📅 Service :</strong> Du ${b.debutService} au ${b.finService}</p>
-            <p><strong>📝 Contenu :</strong><br>${contenuFormaté}</p>
-            <button class="supprimer-bulletin" onclick="demanderSuppression(${index})">Supprimer ce bulletin</button>
-          </div>
-        `;
-        bulletinList.appendChild(div);
-      });
-    }
+            // Parcourir les bulletins pour les afficher
+            bulletins.forEach((b, index) => {
+                const contenuFormaté = b.contenu.replace(/\n/g, '<br>');
+                const div = document.createElement('div');
+                div.className = 'bulletin';
+                div.innerHTML = `
+                    <h3>👮 ${b.titre} <span style="float:right; color:#888;">${b.identifiant}</span></h3>
+                    <small>🕓 Enregistré le : ${b.date}</small>
+                    <button class="voir-details" onclick="toggleDetails(${index})">Voir détails</button>
+                    <div class="details" id="details-${index}">
+                        <p><strong>📅 Service :</strong> Du ${b.debutService} au ${b.finService}</p>
+                        <p><strong>📝 Contenu :</strong><br>${contenuFormaté}</p>
+                    </div>
+                `;
+                bulletinList.appendChild(div);
+            });
+        }
+    });
 
+    // Fonction pour basculer l'affichage des détails
     function toggleDetails(index) {
-      const details = document.getElementById(`details-${index}`);
-      const button = details.previousElementSibling;
-      if (details.style.display === 'none' || details.style.display === '') {
-        details.style.display = 'block';
-        button.textContent = 'Masquer les détails';
-      } else {
-        details.style.display = 'none';
-        button.textContent = 'Voir détails';
-      }
-    }
-
-    function demanderSuppression(index) {
-      bulletinIndexToDelete = index;
-      confirmationMessage.classList.add('show');
-    }
-
-    function confirmerSuppression() {
-      if (bulletinIndexToDelete !== null) {
-        bulletins.splice(bulletinIndexToDelete, 1);
-        localStorage.setItem('bulletins', JSON.stringify(bulletins));
-        location.reload();
-      }
-      annulerSuppression();
-    }
-
-    function annulerSuppression() {
-      confirmationMessage.classList.remove('show');
-      bulletinIndexToDelete = null;
+        const details = document.getElementById(`details-${index}`);
+        const button = details.previousElementSibling;
+        if (details.style.display === 'none' || details.style.display === '') {
+            details.style.display = 'block';
+            button.textContent = 'Masquer les détails';
+        } else {
+            details.style.display = 'none';
+            button.textContent = 'Voir détails';
+        }
     }
   </script>
 
