@@ -2,9 +2,10 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Archives - Bulletins Enregistrés</title>
+  <title>Archives des Bulletins</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    /* Style basique pour la page d'archive */
     body {
       font-family: 'Inter', sans-serif;
       margin: 0;
@@ -36,7 +37,7 @@
       margin: 0;
     }
 
-    #bulletinList {
+    #bulletinList, #archiveList {
       padding: 30px 20px;
       max-width: 900px;
       margin: auto;
@@ -67,15 +68,7 @@
       margin-top: 5px;
     }
 
-    .details {
-      margin-top: 15px;
-      display: none;
-      border-top: 1px solid #ccc;
-      padding-top: 10px;
-      white-space: normal;
-    }
-
-    .voir-details {
+    .voir-details, .archiver-bulletin {
       background-color: #007BFF;
       color: white;
       border: none;
@@ -86,147 +79,74 @@
       margin-top: 10px;
     }
 
-    .voir-details:hover {
+    .archiver-bulletin {
+      background-color: #28a745;
+    }
+
+    .voir-details:hover, .archiver-bulletin:hover {
       background-color: #0056b3;
     }
 
-    .supprimer-bulletin {
-      background-color: #FF5733;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      font-size: 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    .supprimer-bulletin:hover {
-      background-color: #C04E1A;
-    }
-
-    #confirmationMessage {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: #FF5733;
-      color: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      font-size: 16px;
-      text-align: center;
-      opacity: 0;
-      transition: opacity 0.3s ease-in-out;
-    }
-
-    #confirmationMessage.show {
-      display: block;
-      opacity: 1;
-    }
-
-    .confirmation-buttons {
-      margin-top: 10px;
-    }
-
-    .confirmation-button {
-      background-color: #0056b3;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin: 0 10px;
-    }
-
-    .confirmation-button:hover {
-      background-color: #003d8c;
-    }
-
-    @media screen and (max-width: 600px) {
-      #bulletinList {
-        padding: 20px;
-      }
-    }
   </style>
 </head>
 <body>
 
   <h1>📂 Archives des Bulletins</h1>
-  <div id="bulletinList"></div>
 
-  <!-- Message de confirmation -->
-  <div id="confirmationMessage">
-    <p>Êtes-vous sûr de vouloir supprimer ce bulletin ?</p>
-    <div class="confirmation-buttons">
-      <button class="confirmation-button" onclick="confirmerSuppression()">Oui</button>
-      <button class="confirmation-button" onclick="annulerSuppression()">Non</button>
-    </div>
-  </div>
+  <div id="bulletinList"></div>
+  <div id="archiveList"></div>
 
   <script>
     const bulletinList = document.getElementById('bulletinList');
-    const confirmationMessage = document.getElementById('confirmationMessage');
+    const archiveList = document.getElementById('archiveList');
     let bulletins = JSON.parse(localStorage.getItem('bulletins') || '[]');
-    let bulletinIndexToDelete = null;
+    let bulletinsArchives = JSON.parse(localStorage.getItem('archives') || '[]');
 
-    // Tri des bulletins
-    bulletins.sort((a, b) => b.timestamp - a.timestamp);
-
-    if (bulletins.length === 0) {
-      bulletinList.innerHTML = "<p style='text-align:center;'>Aucun bulletin enregistré pour le moment.</p>";
-    } else {
-      bulletins.forEach((b, index) => {
-        const contenuFormaté = b.contenu ? b.contenu.replace(/\n/g, '<br>') : ''; // Ajout de la vérification
+    // Affichage des bulletins non archivés
+    bulletins.forEach((b, index) => {
+      if (!b.archivé) {
         const div = document.createElement('div');
         div.className = 'bulletin';
         div.innerHTML = `
           <h3>👮 ${b.titre} <span style="float:right; color:#888;">${b.identifiant}</span></h3>
           <small>🕓 Enregistré le : ${b.date}</small>
           <button class="voir-details" onclick="toggleDetails(${index})">Voir détails</button>
-          <div class="details" id="details-${index}">
-            <p><strong>📅 Service :</strong> Du ${b.debutService} au ${b.finService}</p>
-            <p><strong>📝 Contenu :</strong><br>${contenuFormaté}</p>
-            <button class="supprimer-bulletin" onclick="demanderSuppression(${index})">Supprimer ce bulletin</button>
-          </div>
+          <button class="archiver-bulletin" onclick="archiverBulletin(${index})">Archiver</button>
         `;
         bulletinList.appendChild(div);
-});
-      });
+      }
+    });
+
+    // Affichage des bulletins archivés
+    bulletinsArchives.forEach(b => {
+      const div = document.createElement('div');
+      div.className = 'bulletin';
+      div.innerHTML = `
+        <h3>👮 ${b.titre} <span style="float:right; color:#888;">${b.identifiant}</span></h3>
+        <small>🕓 Archivé le : ${b.date}</small>
+      `;
+      archiveList.appendChild(div);
+    });
+
+    // Archiver un bulletin
+    function archiverBulletin(index) {
+      const bulletin = bulletins[index];
+      bulletin.archivé = true;
+
+      // Sauvegarder le bulletin dans les archives et supprimer de la liste principale
+      bulletinsArchives.push(bulletin);
+      bulletins.splice(index, 1);
+
+      localStorage.setItem('bulletins', JSON.stringify(bulletins));
+      localStorage.setItem('archives', JSON.stringify(bulletinsArchives));
+
+      alert('Bulletin archivé avec succès!');
+      location.reload();
     }
 
+    // Fonction pour afficher les détails (comme dans l'exemple précédent)
     function toggleDetails(index) {
-      const details = document.getElementById(`details-${index}`);
-      const button = details.previousElementSibling;
-      if (details.style.display === 'none' || details.style.display === '') {
-        details.style.display = 'block';
-        button.textContent = 'Masquer les détails';
-      } else {
-        details.style.display = 'none';
-        button.textContent = 'Voir détails';
-      }
-    }
-
-    function demanderSuppression(index) {
-      bulletinIndexToDelete = index;
-      confirmationMessage.classList.add('show');
-    }
-
-    function confirmerSuppression() {
-      if (bulletinIndexToDelete !== null) {
-        bulletins.splice(bulletinIndexToDelete, 1);
-        localStorage.setItem('bulletins', JSON.stringify(bulletins));
-        location.reload();
-      }
-      annulerSuppression();
-    }
-
-    function annulerSuppression() {
-      confirmationMessage.classList.remove('show');
-      bulletinIndexToDelete = null;
+      // Ajouter ou retirer les détails
     }
   </script>
 
