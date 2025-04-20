@@ -2,18 +2,18 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Bulletins - Police Municipale</title>
+  <title>Archives - Bulletins Enregistrés</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Inter', sans-serif;
       margin: 0;
       padding: 0;
-      color: #2c3e50;
-      height: 100vh;
       background: url('logoPM.png') no-repeat center center fixed;
       background-size: 400px;
+      color: #2c3e50;
       position: relative;
+      min-height: 100vh;
     }
 
     body::before {
@@ -27,222 +27,206 @@
       z-index: -1;
     }
 
-    header {
-      background-color: #003366;
-      padding: 20px;
+    h1 {
       text-align: center;
-      border-bottom: 4px solid #007BFF;
-    }
-
-    header h1 {
-      margin: 0;
-      font-size: 26px;
       color: #fafafa;
+      padding: 20px;
+      background-color: #003366;
+      border-bottom: 4px solid #007BFF;
+      margin: 0;
     }
 
-    .container {
+    #bulletinList {
+      padding: 30px 20px;
       max-width: 900px;
       margin: auto;
-      padding: 30px 20px;
-      background-color: rgba(255, 255, 255, 0.459);
+      background-color: rgba(255, 255, 255, 0.5);
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      margin-top: 30px;
     }
 
-    form label {
-      font-weight: 600;
+    .bulletin {
+      background: white;
+      border-left: 5px solid #007BFF;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    .bulletin h3 {
+      margin: 0;
+      color: #003366;
+    }
+
+    .bulletin small {
+      color: #555;
+      display: block;
+      margin-top: 5px;
+    }
+
+    .details {
       margin-top: 15px;
-      display: block;
-      font-size: 18px;
+      display: none;
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
+      white-space: normal;
     }
 
-    input, textarea {
-      display: block;
-      width: 100%;
-      margin-top: 8px;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 16px;
-      background-color: #fefefe;
-      box-sizing: border-box;
-    }
-
-    button {
-      margin-top: 20px;
-      padding: 14px 25px;
+    .voir-details {
       background-color: #007BFF;
       color: white;
       border: none;
-      border-radius: 8px;
-      font-size: 18px;
-      cursor: pointer;
-    }
-
-    .multi-select-dropdown div {
-      padding: 8px;
-      cursor: pointer;
-    }
-
-    .tag {
-      background: linear-gradient(145deg, #1e3c72, #2a5298);
-      color: white;
-      padding: 2px 8px;
-      border-radius: 14px;
-      margin: 4px 4px 0 0;
-      display: inline-flex;
-      align-items: center;
+      padding: 6px 12px;
       font-size: 14px;
-      line-height: 1.2;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
     }
 
-    .tag button {
-      background: none;
+    .voir-details:hover {
+      background-color: #0056b3;
+    }
+
+    .supprimer-bulletin {
+      background-color: #FF5733;
+      color: white;
       border: none;
-      color: white;
-      cursor: pointer;
-      margin-left: 6px;
+      padding: 6px 12px;
       font-size: 14px;
-      padding: 0;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
     }
 
-    .inline-inputs {
-      display: flex;
-      justify-content: space-between;
-      gap: 15px;
+    .supprimer-bulletin:hover {
+      background-color: #C04E1A;
     }
 
-    .inline-inputs > div {
-      width: 50%;
+    #confirmationMessage {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #FF5733;
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      font-size: 16px;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    #confirmationMessage.show {
+      display: block;
+      opacity: 1;
+    }
+
+    .confirmation-buttons {
+      margin-top: 10px;
+    }
+
+    .confirmation-button {
+      background-color: #0056b3;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 0 10px;
+    }
+
+    .confirmation-button:hover {
+      background-color: #003d8c;
     }
 
     @media screen and (max-width: 600px) {
-      .inline-inputs {
-        flex-direction: column;
-      }
-
-      .inline-inputs > div {
-        width: 100%;
+      #bulletinList {
+        padding: 20px;
       }
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>📘 Bulletin de service - Police Municipale</h1>
-  </header>
+  <h1>📂 Archives des Bulletins</h1>
+  <div id="bulletinList"></div>
 
-  <div class="container">
-    <form id="rapportForm">
-      <div class="inline-inputs">
-        <div>
-          <label for="debutService">Date/Heure de prise de service</label>
-          <input type="datetime-local" id="debutService" required>
-        </div>
-        <div>
-          <label for="finService">Date/Heure de fin de service</label>
-          <input type="datetime-local" id="finService" required>
-        </div>
-      </div>
-
-      <label for="agents">Agents</label>
-      <div class="multi-select" id="agents">
-        <input type="text" id="agentSearch" placeholder="Rechercher un agent..." autocomplete="off">
-        <div class="multi-select-dropdown" id="agentDropdown"></div>
-        <div id="selectedAgents"></div>
-      </div>
-
-      <label for="contenu">Contenu</label>
-      <textarea id="contenu" rows="5" placeholder="Détails de l’intervention..." required></textarea>
-
-      <button type="submit">✅ Enregistrer le bulletin</button>
-    </form>
-
-    <div id="confirmationDate" class="date-enregistrement"></div>
+  <!-- Message de confirmation -->
+  <div id="confirmationMessage">
+    <p>Êtes-vous sûr de vouloir supprimer ce bulletin ?</p>
+    <div class="confirmation-buttons">
+      <button class="confirmation-button" onclick="confirmerSuppression()">Oui</button>
+      <button class="confirmation-button" onclick="annulerSuppression()">Non</button>
+    </div>
   </div>
 
   <script>
-    const form = document.getElementById('rapportForm');
-    const agentSearch = document.getElementById('agentSearch');
-    const agentDropdown = document.getElementById('agentDropdown');
-    const selectedAgentsContainer = document.getElementById('selectedAgents');
-    const confirmationDate = document.getElementById('confirmationDate');
+    const bulletinList = document.getElementById('bulletinList');
+    const confirmationMessage = document.getElementById('confirmationMessage');
+    let bulletins = JSON.parse(localStorage.getItem('bulletins') || '[]');
+    let bulletinIndexToDelete = null;
 
-    const availableAgents = [
-      "Luka TIERART", "Arnaud LEMOINE", "Lucas MARCHAND",
-      "Luke McDAVID", "Franck SKINNER", "Andrew TAYLOR",
-      "Louna SMITH", "Valentin BELADRI", "Matthieu SAG",
-      "Patrick LEGRAND", "Achille BUTEAU", "Anthonin HERNANDEZ",
-      "Flavien PARKS", "Aaron JACKSON", "Jeyson DIXON",
-    ];
+    // Tri des bulletins
+    bulletins.sort((a, b) => b.timestamp - a.timestamp);
 
-    let selectedAgents = [];
-
-    let bulletinIDCounter = parseInt(localStorage.getItem('bulletinIDCounter') || '1');
-
-    agentSearch.addEventListener('input', () => {
-      const query = agentSearch.value.toLowerCase();
-      const filtered = availableAgents.filter(a => a.toLowerCase().includes(query) && !selectedAgents.includes(a));
-      agentDropdown.innerHTML = '';
-      filtered.forEach(agent => {
+    if (bulletins.length === 0) {
+      bulletinList.innerHTML = "<p style='text-align:center;'>Aucun bulletin enregistré pour le moment.</p>";
+    } else {
+      bulletins.forEach((b, index) => {
+        const contenuFormaté = b.contenu.replace(/\n/g, '<br>');
         const div = document.createElement('div');
-        div.textContent = agent;
-        div.onclick = () => addAgent(agent);
-        agentDropdown.appendChild(div);
-      });
-    });
-
-    function addAgent(agent) {
-      selectedAgents.push(agent);
-      const tag = document.createElement('div');
-      tag.className = 'tag';
-      tag.textContent = agent;
-      const btn = document.createElement('button');
-      btn.innerHTML = '&times;';
-      btn.onclick = () => removeAgent(agent);
-      tag.appendChild(btn);
-      selectedAgentsContainer.appendChild(tag);
-      agentSearch.value = '';
-      agentDropdown.innerHTML = '';
-    }
-
-    function removeAgent(agent) {
-      selectedAgents = selectedAgents.filter(a => a !== agent);
-      [...selectedAgentsContainer.children].forEach(tag => {
-        if (tag.textContent.includes(agent)) tag.remove();
+        div.className = 'bulletin';
+        div.innerHTML = `
+          <h3>👮 ${b.titre} <span style="float:right; color:#888;">${b.identifiant}</span></h3>
+          <small>🕓 Enregistré le : ${b.date}</small>
+          <button class="voir-details" onclick="toggleDetails(${index})">Voir détails</button>
+          <div class="details" id="details-${index}">
+            <p><strong>📅 Service :</strong> Du ${b.debutService} au ${b.finService}</p>
+            <p><strong>📝 Contenu :</strong><br>${contenuFormaté}</p>
+            <button class="supprimer-bulletin" onclick="demanderSuppression(${index})">Supprimer ce bulletin</button>
+          </div>
+        `;
+        bulletinList.appendChild(div);
       });
     }
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
+    function toggleDetails(index) {
+      const details = document.getElementById(`details-${index}`);
+      const button = details.previousElementSibling;
+      if (details.style.display === 'none' || details.style.display === '') {
+        details.style.display = 'block';
+        button.textContent = 'Masquer les détails';
+      } else {
+        details.style.display = 'none';
+        button.textContent = 'Voir détails';
+      }
+    }
 
-      const contenu = document.getElementById('contenu').value;
-      const debutService = document.getElementById('debutService').value;
-      const finService = document.getElementById('finService').value;
+    function demanderSuppression(index) {
+      bulletinIndexToDelete = index;
+      confirmationMessage.classList.add('show');
+    }
 
-      const rapport = {
-        debutService,
-        finService,
-        titre: selectedAgents.join(', '),
-        contenu,
-        date: new Date().toLocaleString(),
-        identifiant: `#${String(bulletinIDCounter++).padStart(5, '0')}`,
-        timestamp: new Date().getTime()
-      };
+    function confirmerSuppression() {
+      if (bulletinIndexToDelete !== null) {
+        bulletins.splice(bulletinIndexToDelete, 1);
+        localStorage.setItem('bulletins', JSON.stringify(bulletins));
+        location.reload();
+      }
+      annulerSuppression();
+    }
 
-      // Sauvegarder le bulletin dans localStorage
-      const bulletins = JSON.parse(localStorage.getItem('bulletins') || '[]');
-      bulletins.push(rapport);
-      localStorage.setItem('bulletins', JSON.stringify(bulletins));
-      localStorage.setItem('bulletinIDCounter', bulletinIDCounter); // Mettre à jour le compteur d'ID
-
-      confirmationDate.textContent = `✅ Bulletin enregistré le : ${rapport.date}`;
-
-      form.reset();
-      selectedAgents = [];
-      selectedAgentsContainer.innerHTML = '';
-    });
+    function annulerSuppression() {
+      confirmationMessage.classList.remove('show');
+      bulletinIndexToDelete = null;
+    }
   </script>
 
 </body>
