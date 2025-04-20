@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Voir les Rapports - Police Municipale</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: url('logoPM.png') no-repeat center center fixed;
+      background-size: 400px;
+      color: #2c3e50;
+      position: relative;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.307);
+      z-index: -1;
+    }
+
+    header {
+      background-color: #003366;
+      padding: 20px;
+      text-align: center;
+      border-bottom: 4px solid #007BFF;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 26px;
+      color: #fafafa;
+    }
+
+    #rapportList {
+      padding: 30px 20px;
+      max-width: 900px;
+      margin: auto;
+      background-color: rgba(255, 255, 255, 0.5);
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      margin-top: 30px;
+    }
+
+    .rapport {
+      background: white;
+      border-left: 5px solid #007BFF;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    .rapport h3 {
+      margin: 0;
+      color: #003366;
+    }
+
+    .rapport small {
+      color: #555;
+      display: block;
+      margin-top: 5px;
+    }
+
+    .details {
+      margin-top: 15px;
+      display: none;
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
+      white-space: normal;
+    }
+
+    .voir-details {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .voir-details:hover {
+      background-color: #0056b3;
+    }
+
+    .supprimer-bulletin {
+      background-color: #dc3545;
+      color: white;
+      padding: 6px 12px;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .supprimer-bulletin:hover {
+      background-color: #c82333;
+    }
+
+    .telecharger-rapport {
+      background-color: #28a745;
+      color: white;
+      padding: 6px 12px;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+      display: none; /* Cacher au début */
+    }
+
+    .telecharger-rapport:hover {
+      background-color: #218838;
+    }
+
+    #confirmationMessage {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #FF5733;
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      font-size: 16px;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    #confirmationMessage.show {
+      display: block;
+      opacity: 1;
+    }
+
+    .confirmation-buttons {
+      margin-top: 10px;
+    }
+
+    .confirmation-button {
+      background-color: #0056b3;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 0 10px;
+    }
+
+    .confirmation-button:hover {
+      background-color: #003d8c;
+    }
+
+    @media screen and (max-width: 600px) {
+      #rapportList {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>📂 Voir les Rapports de Police Municipale</h1>
+  </header>
+
+  <div id="rapportList"></div>
+
+  <!-- Message de confirmation -->
+  <div id="confirmationMessage">
+    <p>Êtes-vous sûr de vouloir supprimer ce rapport ?</p>
+    <div class="confirmation-buttons">
+      <button class="confirmation-button" onclick="confirmerSuppression()">Oui</button>
+      <button class="confirmation-button" onclick="annulerSuppression()">Non</button>
+    </div>
+  </div>
+
+  <script>
+    const { jsPDF } = window.jspdf;  // On récupère jsPDF depuis la bibliothèque
+    
+    const rapportList = document.getElementById('rapportList');
+    const confirmationMessage = document.getElementById('confirmationMessage');
+    let rapports = JSON.parse(localStorage.getItem('bulletins') || '[]');
+    let rapportIndexToDelete = null;
+
+    rapports.sort((a, b) => new Date(b.heureRedaction) - new Date(a.heureRedaction));
+
+    if (rapports.length === 0) {
+      rapportList.innerHTML = "<p style='text-align:center;'>Aucun rapport enregistré pour le moment.</p>";
+    } else {
+      rapports.forEach((rapport, index) => {
+        const div = document.createElement('div');
+        div.className = 'rapport';
+        div.innerHTML = `  
+          <h3>👮 ${rapport.grade} - ${rapport.agents} <span style="float:right; color:#888;">${rapport.heureRedaction}</span></h3>
+          <small>📝 Enregistré le : ${rapport.date}</small>
+          <button class="voir-details" onclick="toggleDetails(${index})">Voir détails</button>
+          <div class="details" id="details-${index}">
+            <p><strong>📅 Agents :</strong> ${rapport.agents}</p>
+            <p><strong>🚨 Infraction :</strong> ${rapport.infraction || '—'}</p>
+            <p><strong>🧍‍♂️ Identité / Coordonnées :</strong><br>${rapport.identite || '—'}</p>
+            <p><strong>🚗 Véhicule :</strong> ${rapport.vehicule || '—'}</p>
+            <p><strong>📄 Rapport :</strong><br>${rapport.deroule.replace(/\n/g, '<br>')}</p>
+            <button class="supprimer-bulletin" onclick="demanderSuppression(${index})">Supprimer ce rapport</button>
+            <button class="telecharger-rapport" onclick="telechargerRapport(${index})">Télécharger le rapport</button>
+          </div>
+        `;
+        rapportList.appendChild(div);
+      });
+    }
+
+    function toggleDetails(index) {
+      const details = document.getElementById(`details-${index}`);
+      const button = details.previousElementSibling;
+      const downloadButton = details.querySelector('.telecharger-rapport');  // Cibler le bouton télécharger
+
+      if (details.style.display === 'none' || details.style.display === '') {
+        details.style.display = 'block';
+        button.textContent = 'Masquer les détails';
+        downloadButton.style.display = 'inline-block';  // Afficher le bouton télécharger
+      } else {
+        details.style.display = 'none';
+        button.textContent = 'Voir détails';
+        downloadButton.style.display = 'none';  // Cacher le bouton télécharger
+      }
+    }
+
+    function demanderSuppression(index) {
+      rapportIndexToDelete = index;
+      confirmationMessage.classList.add('show');
+    }
+
+    function confirmerSuppression() {
+      if (rapportIndexToDelete !== null) {
+        rapports.splice(rapportIndexToDelete, 1);
+        localStorage.setItem('bulletins', JSON.stringify(rapports));
+        location.reload();
+      }
+      annulerSuppression();
+    }
+
+    function annulerSuppression() {
+      confirmationMessage.classList.remove('show');
+      rapportIndexToDelete = null;
+    }
+
+    function telechargerRapport(index) {
+      const rapport = rapports[index];
+      
+      const doc = new jsPDF('p', 'mm', 'a4');  // Spécifie le format A4 (210x297 mm)
+      doc.setFont("helvetica");
+      doc.setFontSize(12);
+      
+      const title = `Rapport de Police Municipale - ${rapport.grade} - ${rapport.agents}`;
+      doc.text(title, 10, 10);
+      
+      doc.setFontSize(10);  // Réduire la taille pour les informations supplémentaires
+      let yPosition = 20;
+      
+      // Utiliser splitTextToSize pour gérer le texte long
+      const lines = doc.splitTextToSize(`Enregistré le : ${rapport.date}`, 190);
+      doc.text(lines, 10, yPosition);
+      yPosition += lines.length * 5;  // Ajuster la position en fonction de la hauteur du texte
+      
+      const heureLines = doc.splitTextToSize(`Heure de rédaction : ${rapport.heureRedaction}`, 190);
+      doc.text(heureLines, 10, yPosition);
+      yPosition += heureLines.length * 5;
+      
+      // Détails du rapport
+      const infractionLines = doc.splitTextToSize(`Infraction : ${rapport.infraction || '—'}`, 190);
+      doc.text(infractionLines, 10, yPosition);
+      yPosition += infractionLines.length * 5;
+      
+      const identiteLines = doc.splitTextToSize(`Identité / Coordonnées : ${rapport.identite || '—'}`, 190);
+      doc.text(identiteLines, 10, yPosition);
+      yPosition += identiteLines.length * 5;
+      
+      const vehiculeLines = doc.splitTextToSize(`Véhicule : ${rapport.vehicule || '—'}`, 190);
+      doc.text(vehiculeLines, 10, yPosition);
+      yPosition += vehiculeLines.length * 5;
+      
+      // Ajouter un espace avant les détails
+      yPosition += 10;  // Ajouter un petit espace entre "Véhicule" et "Détails"
+      
+      const rapportLines = doc.splitTextToSize(`Détail du rapport :\n${rapport.deroule}`, 190);
+      doc.text(rapportLines, 10, yPosition);
+      
+      // Génération du fichier PDF et téléchargement
+      doc.save(`rapport-${index + 1}.pdf`);
+    }
+  </script>
+
+</body>
+</html>
