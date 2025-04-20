@@ -1,102 +1,177 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menu principal</title>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: url('logoPM.png') no-repeat center center fixed;
-            background-size: 400px;
-            color: #2c3e50;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            position: relative;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSU PM - Connexion & Menu</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: url('logoPM.png') no-repeat center center fixed;
+      background-size: 400px;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #2c3e50;
+      position: relative;
+    }
 
-        body::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.307);
-            z-index: -1;
-        }
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: -1;
+    }
 
-        .window-container {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            max-width: 900px;
-            width: 100%;
-            padding: 30px;
-            background-color: rgba(255, 255, 255, 0.6); /* Transparence ajoutée */
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
+    .box {
+      background-color: rgba(255, 255, 255, 0.85);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 300px;
+    }
 
-        .window {
-            background: rgba(255, 255, 255, 0.9); /* Transparence ajoutée */
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            text-align: center;
-            position: relative;
-        }
+    .input-field {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
 
-        .window h3 {
-            color: #003366;
-        }
+    .btn {
+      width: 100%;
+      padding: 10px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
 
-        .window button {
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 20px;
-            transition: background-color 0.3s ease;
-        }
+    .btn:hover {
+      background-color: #0056b3;
+    }
 
-        .window button:hover {
-            background-color: #0056b3;
-        }
+    .window-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      max-width: 900px;
+      margin: auto;
+      padding: 30px;
+    }
 
-        @media screen and (max-width: 600px) {
-            .window-container {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    .window {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    .window h3 {
+      color: #003366;
+    }
+
+    .window button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .logout-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #dc3545;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .error-message {
+      color: red;
+      margin-top: 10px;
+      display: none;
+    }
+  </style>
 </head>
 <body>
 
+  <!-- 🔐 Formulaire de Connexion -->
+  <div class="box" id="loginBox">
+    <h2>Connexion CSU PM</h2>
+    <input type="text" id="username" class="input-field" placeholder="Code utilisateur" required>
+    <input type="password" id="password" class="input-field" placeholder="Mot de passe" required>
+    <button class="btn" onclick="login()">Se connecter</button>
+    <p class="error-message" id="errorMsg">Identifiants incorrects</p>
+  </div>
+
+  <!-- 🏠 Menu CSU -->
+  <div id="menuBox" style="display:none;">
     <div class="window-container">
-        <div class="window">
-            <h3>Bulletin de service</h3>
-            <button onclick="window.location.href='bulletin_service.html'">Accéder</button>
-        </div>
-        <div class="window">
-            <h3>Archive bulletin</h3>
-            <button onclick="window.location.href='archive_bulletin.html'">Accéder</button>
-        </div>
-        <div class="window">
-            <h3>Rapport d'intervention</h3>
-            <button onclick="window.location.href='rapport_intervention.html'">Accéder</button>
-        </div>
-        <div class="window">
-            <h3>Archive Rapport</h3>
-            <button onclick="window.location.href='archive_rapport.html'">Accéder</button>
-        </div>
+      <div class="window">
+        <h3>Bulletin de service</h3>
+        <button onclick="window.location.href='bulletin_service.html'">Accéder</button>
+      </div>
+      <div class="window">
+        <h3>Archive bulletin</h3>
+        <button onclick="window.location.href='archive_bulletin.html'">Accéder</button>
+      </div>
+      <div class="window">
+        <h3>Rapport d'intervention</h3>
+        <button onclick="window.location.href='rapport_intervention.html'">Accéder</button>
+      </div>
+      <div class="window">
+        <h3>Archive Rapport</h3>
+        <button onclick="window.location.href='archive_rapport.html'">Accéder</button>
+      </div>
     </div>
+    <div style="text-align:center;">
+      <button class="logout-btn" onclick="logout()">Déconnexion</button>
+    </div>
+  </div>
+
+  <script>
+    // 🔁 Si déjà connecté, afficher directement le menu
+    if (localStorage.getItem("loggedIn") === "true") {
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("menuBox").style.display = "block";
+    }
+
+    function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      if (username === "CSU" && password === "CSU67") {
+        localStorage.setItem("loggedIn", "true");
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("menuBox").style.display = "block";
+        document.getElementById("errorMsg").style.display = "none";
+      } else {
+        document.getElementById("errorMsg").style.display = "block";
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedIn");
+      document.getElementById("menuBox").style.display = "none";
+      document.getElementById("loginBox").style.display = "block";
+    }
+  </script>
 
 </body>
 </html>
