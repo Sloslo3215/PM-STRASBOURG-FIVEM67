@@ -2,9 +2,10 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Gestion des Bulletins</title>
+  <title>Créer un Bulletin</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    /* Style basique pour la page de création */
     body {
       font-family: 'Inter', sans-serif;
       margin: 0;
@@ -36,214 +37,83 @@
       margin: 0;
     }
 
-    .section {
-      padding: 30px 20px;
-      max-width: 900px;
+    #form-container {
+      padding: 30px;
+      max-width: 600px;
       margin: auto;
-      background-color: rgba(255, 255, 255, 0.5);
+      background-color: rgba(255, 255, 255, 0.8);
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
       margin-top: 30px;
     }
 
-    .bulletin {
-      background: white;
-      border-left: 5px solid #007BFF;
-      padding: 20px;
-      margin: 20px 0;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      position: relative;
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ddd;
     }
 
-    .bulletin h3 {
-      margin: 0;
-      color: #003366;
-    }
-
-    .bulletin small {
-      color: #555;
-      display: block;
-      margin-top: 5px;
-    }
-
-    .details {
-      margin-top: 15px;
-      display: none;
-      border-top: 1px solid #ccc;
-      padding-top: 10px;
-      white-space: normal;
-    }
-
-    .voir-details {
+    button {
       background-color: #007BFF;
       color: white;
-      border: none;
-      padding: 6px 12px;
-      font-size: 14px;
-      border-radius: 6px;
       cursor: pointer;
-      margin-top: 10px;
+      font-size: 18px;
     }
 
-    .voir-details:hover {
+    button:hover {
       background-color: #0056b3;
     }
 
-    .supprimer-bulletin {
-      background-color: #FF5733;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      font-size: 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    .supprimer-bulletin:hover {
-      background-color: #C04E1A;
-    }
-
-    #confirmationMessage {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: #FF5733;
-      color: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      font-size: 16px;
-      text-align: center;
-      opacity: 0;
-      transition: opacity 0.3s ease-in-out;
-    }
-
-    #confirmationMessage.show {
-      display: block;
-      opacity: 1;
-    }
-
-    .confirmation-buttons {
-      margin-top: 10px;
-    }
-
-    .confirmation-button {
-      background-color: #0056b3;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin: 0 10px;
-    }
-
-    .confirmation-button:hover {
-      background-color: #003d8c;
-    }
   </style>
 </head>
 <body>
 
-  <h1>📂 Gestion des Bulletins</h1>
+  <h1>📑 Créer un Bulletin</h1>
 
-  <!-- Section des bulletins actifs -->
-  <div class="section" id="bulletinList"></div>
-
-  <!-- Section des archives -->
-  <div class="section" id="archiveList"></div>
-
-  <!-- Message de confirmation -->
-  <div id="confirmationMessage">
-    <p>Êtes-vous sûr de vouloir supprimer ce bulletin ?</p>
-    <div class="confirmation-buttons">
-      <button class="confirmation-button" onclick="confirmerSuppression()">Oui</button>
-      <button class="confirmation-button" onclick="annulerSuppression()">Non</button>
-    </div>
+  <div id="form-container">
+    <form id="bulletinForm">
+      <input type="text" id="titre" placeholder="Titre du bulletin" required>
+      <textarea id="contenu" placeholder="Contenu du bulletin" rows="6" required></textarea>
+      <input type="text" id="identifiant" placeholder="Identifiant" required>
+      <input type="date" id="date" required>
+      <input type="text" id="debutService" placeholder="Début de service" required>
+      <input type="text" id="finService" placeholder="Fin de service" required>
+      <button type="submit">Créer le Bulletin</button>
+    </form>
   </div>
 
   <script>
-    const bulletinList = document.getElementById('bulletinList');
-    const archiveList = document.getElementById('archiveList');
-    const confirmationMessage = document.getElementById('confirmationMessage');
-    let bulletins = JSON.parse(localStorage.getItem('bulletins') || '[]');
-    let archives = JSON.parse(localStorage.getItem('archives') || '[]');
-    let bulletinIndexToDelete = null;
+    document.getElementById('bulletinForm').addEventListener('submit', function(event) {
+      event.preventDefault();
 
-    // Séparation des bulletins actifs et des archives
-    const bulletinsActifs = bulletins.filter(b => !b.archivé);
-    const bulletinsArchives = bulletins.filter(b => b.archivé);
+      const titre = document.getElementById('titre').value;
+      const contenu = document.getElementById('contenu').value;
+      const identifiant = document.getElementById('identifiant').value;
+      const date = document.getElementById('date').value;
+      const debutService = document.getElementById('debutService').value;
+      const finService = document.getElementById('finService').value;
 
-    // Affichage des bulletins actifs
-    bulletinsActifs.forEach((b, index) => {
-      const contenuFormaté = b.contenu ? b.contenu.replace(/\n/g, '<br>') : '';
-      const div = document.createElement('div');
-      div.className = 'bulletin';
-      div.innerHTML = `
-        <h3>👮 ${b.titre} <span style="float:right; color:#888;">${b.identifiant}</span></h3>
-        <small>🕓 Enregistré le : ${b.date}</small>
-        <button class="voir-details" onclick="toggleDetails(${index})">Voir détails</button>
-        <div class="details" id="details-${index}">
-          <p><strong>📅 Service :</strong> Du ${b.debutService} au ${b.finService}</p>
-          <p><strong>📝 Contenu :</strong><br>${contenuFormaté}</p>
-          <button class="supprimer-bulletin" onclick="demanderSuppression(${index})">Supprimer ce bulletin</button>
-        </div>
-      `;
-      bulletinList.appendChild(div);
+      const bulletin = {
+        titre,
+        contenu,
+        identifiant,
+        date,
+        debutService,
+        finService,
+        timestamp: Date.now(),
+        archivé: false // Le bulletin n'est pas encore archivé
+      };
+
+      let bulletins = JSON.parse(localStorage.getItem('bulletins') || '[]');
+      bulletins.push(bulletin);
+      localStorage.setItem('bulletins', JSON.stringify(bulletins));
+
+      alert('Bulletin créé avec succès!');
+      window.location.href = 'index.html'; // Redirige vers la page principale ou liste des bulletins
     });
-
-    // Affichage des archives
-    bulletinsArchives.forEach((b, index) => {
-      const contenuFormaté = b.contenu ? b.contenu.replace(/\n/g, '<br>') : '';
-      const div = document.createElement('div');
-      div.className = 'bulletin';
-      div.innerHTML = `
-        <h3>👮 ${b.titre} <span style="float:right; color:#888;">${b.identifiant}</span></h3>
-        <small>🕓 Archivé le : ${b.date}</small>
-        <button class="voir-details" onclick="toggleDetails(${index})">Voir détails</button>
-        <div class="details" id="details-${index}">
-          <p><strong>📅 Service :</strong> Du ${b.debutService} au ${b.finService}</p>
-          <p><strong>📝 Contenu :</strong><br>${contenuFormaté}</p>
-          <button class="supprimer-bulletin" onclick="demanderSuppression(${index})">Supprimer ce bulletin</button>
-        </div>
-      `;
-      archiveList.appendChild(div);
-    });
-
-    function toggleDetails(index) {
-      const details = document.getElementById(`details-${index}`);
-      const button = details.previousElementSibling;
-      if (details.style.display === 'none' || details.style.display === '') {
-        details.style.display = 'block';
-        button.textContent = 'Masquer les détails';
-      } else {
-        details.style.display = 'none';
-        button.textContent = 'Voir détails';
-      }
-    }
-
-    function demanderSuppression(index) {
-      bulletinIndexToDelete = index;
-      confirmationMessage.classList.add('show');
-    }
-
-    function confirmerSuppression() {
-      if (bulletinIndexToDelete !== null) {
-        bulletins.splice(bulletinIndexToDelete, 1);
-        localStorage.setItem('bulletins', JSON.stringify(bulletins));
-        location.reload();
-      }
-      annulerSuppression();
-    }
-
-    function annulerSuppression() {
-      confirmationMessage.classList.remove('show');
-      bulletinIndexToDelete = null;
-    }
   </script>
 
 </body>
