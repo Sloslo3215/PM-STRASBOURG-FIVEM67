@@ -1,34 +1,102 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CSU PM - Connexion & Menu</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu principal</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: url('logoPM.png') no-repeat center center fixed;
+            background-size: 400px;
+            color: #2c3e50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.307);
+            z-index: -1;
+        }
+
+        .window-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 900px;
+            width: 100%;
+            padding: 30px;
+            background-color: rgba(255, 255, 255, 0.6); /* Transparence ajoutée */
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .window {
+            background: rgba(255, 255, 255, 0.9); /* Transparence ajoutée */
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .window h3 {
+            color: #003366;
+        }
+
+        .window button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .window button:hover {
+            background-color: #0056b3;
+        }
+
+        @media screen and (max-width: 600px) {
+            .window-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-  <script>
-    if (localStorage.getItem("loggedIn") === "true") {
-      window.location.href = "bulletin_service.html";
-    } else {
-      document.write(\`
-        <h2>Connexion CSU</h2>
-        <input type="text" id="username" placeholder="Identifiant">
-        <input type="password" id="password" placeholder="Mot de passe">
-        <button onclick="login()">Connexion</button>
-        <p id="error" style="color:red;"></p>
-      \`);
-    }
 
-    function login() {
-      const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
-      if (username === "CSU" && password === "CSU67") {
-        localStorage.setItem("loggedIn", "true");
-        window.location.href = "bulletin_service.html";
-      } else {
-        document.getElementById("error").textContent = "Identifiants incorrects.";
-      }
-    }
-  </script>
+    <div class="window-container">
+        <div class="window">
+            <h3>Bulletin de service</h3>
+            <button onclick="window.location.href='bulletin_service.html'">Accéder</button>
+        </div>
+        <div class="window">
+            <h3>Archive bulletin</h3>
+            <button onclick="window.location.href='archive_bulletin.html'">Accéder</button>
+        </div>
+        <div class="window">
+            <h3>Rapport d'intervention</h3>
+            <button onclick="window.location.href='rapport_intervention.html'">Accéder</button>
+        </div>
+        <div class="window">
+            <h3>Archive Rapport</h3>
+            <button onclick="window.location.href='archive_rapport.html'">Accéder</button>
+        </div>
+    </div>
+
 </body>
 </html>
