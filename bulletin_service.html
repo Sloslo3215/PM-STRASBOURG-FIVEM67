@@ -5,6 +5,7 @@
   <title>Bulletins - Police Municipale</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    /* === Styles conservés === */
     body {
       font-family: 'Inter', sans-serif;
       margin: 0;
@@ -79,11 +80,6 @@
       cursor: pointer;
     }
 
-    .multi-select-dropdown div {
-      padding: 8px;
-      cursor: pointer;
-    }
-
     .tag {
       background: linear-gradient(145deg, #1e3c72, #2a5298);
       color: white;
@@ -147,11 +143,7 @@
       </div>
 
       <label for="agents">Agents</label>
-      <div class="multi-select" id="agents">
-        <input type="text" id="agentSearch" placeholder="Rechercher un agent..." autocomplete="off">
-        <div class="multi-select-dropdown" id="agentDropdown"></div>
-        <div id="selectedAgents"></div>
-      </div>
+      <input type="text" id="agentInput" placeholder="Séparer les noms par des virgules" required>
 
       <label for="contenu">Contenu</label>
       <textarea id="contenu" rows="5" placeholder="Détails de l’intervention..." required></textarea>
@@ -164,55 +156,9 @@
 
   <script>
     const form = document.getElementById('rapportForm');
-    const agentSearch = document.getElementById('agentSearch');
-    const agentDropdown = document.getElementById('agentDropdown');
-    const selectedAgentsContainer = document.getElementById('selectedAgents');
     const confirmationDate = document.getElementById('confirmationDate');
 
-    const availableAgents = [
-      "Luka TIERART", "Arnaud LEMOINE", "Lucas MARCHAND",
-      "Luke McDAVID", "Franck SKINNER", "Andrew TAYLOR",
-      "Louna SMITH", "Valentin BELADRI", "Matthieu SAG",
-      "Patrick LEGRAND", "Achille BUTEAU", "Anthonin HERNANDEZ",
-      "Flavien PARKS", "Aaron JACKSON", "Jeyson DIXON",
-    ];
-
-    let selectedAgents = [];
-
     let bulletinIDCounter = parseInt(localStorage.getItem('bulletinIDCounter') || '1');
-
-    agentSearch.addEventListener('input', () => {
-      const query = agentSearch.value.toLowerCase();
-      const filtered = availableAgents.filter(a => a.toLowerCase().includes(query) && !selectedAgents.includes(a));
-      agentDropdown.innerHTML = '';
-      filtered.forEach(agent => {
-        const div = document.createElement('div');
-        div.textContent = agent;
-        div.onclick = () => addAgent(agent);
-        agentDropdown.appendChild(div);
-      });
-    });
-
-    function addAgent(agent) {
-      selectedAgents.push(agent);
-      const tag = document.createElement('div');
-      tag.className = 'tag';
-      tag.textContent = agent;
-      const btn = document.createElement('button');
-      btn.innerHTML = '&times;';
-      btn.onclick = () => removeAgent(agent);
-      tag.appendChild(btn);
-      selectedAgentsContainer.appendChild(tag);
-      agentSearch.value = '';
-      agentDropdown.innerHTML = '';
-    }
-
-    function removeAgent(agent) {
-      selectedAgents = selectedAgents.filter(a => a !== agent);
-      [...selectedAgentsContainer.children].forEach(tag => {
-        if (tag.textContent.includes(agent)) tag.remove();
-      });
-    }
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -220,28 +166,27 @@
       const contenu = document.getElementById('contenu').value;
       const debutService = document.getElementById('debutService').value;
       const finService = document.getElementById('finService').value;
+      const agents = document.getElementById('agentInput').value.trim();
 
       const rapport = {
         debutService,
         finService,
-        titre: selectedAgents.join(', '),
+        titre: agents,
         contenu,
         date: new Date().toLocaleString(),
         identifiant: `#${String(bulletinIDCounter++).padStart(5, '0')}`,
         timestamp: new Date().getTime()
       };
 
-      // Sauvegarder le bulletin dans localStorage
+      // ✅ Sauvegarder dans localStorage sous la clé 'bulletins'
       const bulletins = JSON.parse(localStorage.getItem('bulletins') || '[]');
       bulletins.push(rapport);
       localStorage.setItem('bulletins', JSON.stringify(bulletins));
-      localStorage.setItem('bulletinIDCounter', bulletinIDCounter); // Mettre à jour le compteur d'ID
+      localStorage.setItem('bulletinIDCounter', bulletinIDCounter);
 
       confirmationDate.textContent = `✅ Bulletin enregistré le : ${rapport.date}`;
 
       form.reset();
-      selectedAgents = [];
-      selectedAgentsContainer.innerHTML = '';
     });
   </script>
 
