@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Rapport - Police Municipale</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -126,7 +127,6 @@
       }
     }
 
-    /* Aide à la rédaction */
     #aideRedaction {
       display: none;
       margin-top: 20px;
@@ -195,18 +195,16 @@
       <label for="deroule">Déroulé de la situation</label>
       <textarea id="deroule" rows="15" placeholder="Décrivez le déroulé de la situation..." required></textarea>
 
-      <button type="submit">✅ Enregistrer le rapport</button>
+      <button type="submit">🖨️ Aperçu PDF</button>
+      <button type="button" id="downloadPDF">📥 Télécharger PDF</button>
     </form>
 
-    <!-- Lien pour voir les rapports enregistrés -->
-    <p><a href="voir_rapports.html" style="color: #007BFF; font-size: 16px; margin-top: 20px; display: block;">Voir les rapports enregistrés</a></p>
+    <p><a href="archive.html" style="color: #007BFF; font-size: 16px; margin-top: 20px; display: block;">Voir les rapports enregistrés</a></p>
 
-    <!-- Aide à la rédaction -->
     <p id="aideLink" style="color: #007BFF; font-size: 16px; margin-top: 20px; cursor: pointer;">Aide à la rédaction</p>
 
     <div id="aideRedaction">
       <h2>Aide à la rédaction du rapport</h2>
-
       <p><strong>En cas de rapport pour une interpellation :</strong></p>
       <p>
         <strong>Moi ou nous</strong> <strong>Grade</strong><br>
@@ -214,7 +212,6 @@
         Vu les articles 21-1, 21-2, 21-2° et 73 du CPP<br>
         Avons constaté et rapportons les faits suivants :
       </p>
-
       <p><strong>En cas de simple rapport sans interpellation :</strong></p>
       <p>
         <strong>Moi ou nous</strong> <strong>Grade</strong><br>
@@ -222,8 +219,6 @@
         Avons constaté et rapportons les faits suivants :
       </p>
     </div>
-
-    <div id="confirmationDate" class="date-enregistrement"></div>
   </div>
 
   <script>
@@ -238,7 +233,6 @@
     const agentSearch = document.getElementById('agentSearch');
     const agentDropdown = document.getElementById('agentDropdown');
     const selectedAgentsContainer = document.getElementById('selectedAgents');
-    const confirmationDate = document.getElementById('confirmationDate');
     const gradeSelect = document.getElementById('grade');
 
     const availableAgents = [
@@ -249,73 +243,98 @@
       "Flavien PARKS", "Aaron JACKSON", "Jeyson DIXON",
     ];
 
-    let selectedAgents = [];
-
-    agentSearch.addEventListener('input', () => {
-      const query = agentSearch.value.toLowerCase();
-      const filtered = availableAgents.filter(a => a.toLowerCase().includes(query) && !selectedAgents.includes(a));
+    agentSearch.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
       agentDropdown.innerHTML = '';
-      filtered.forEach(agent => {
-        const div = document.createElement('div');
-        div.textContent = agent;
-        div.onclick = () => addAgent(agent);
-        agentDropdown.appendChild(div);
-      });
+
+      if (searchTerm) {
+        const filteredAgents = availableAgents.filter(agent =>
+          agent.toLowerCase().includes(searchTerm)
+        );
+
+        filteredAgents.forEach(agent => {
+          const div = document.createElement('div');
+          div.innerText = agent;
+          div.addEventListener('click', () => {
+            addAgent(agent);
+          });
+          agentDropdown.appendChild(div);
+        });
+      }
     });
 
-    function addAgent(agent) {
-      selectedAgents.push(agent);
-      const tag = document.createElement('div');
+    const addAgent = (agent) => {
+      const tag = document.createElement('span');
       tag.className = 'tag';
-      tag.textContent = agent;
-      const btn = document.createElement('button');
-      btn.innerHTML = '&times;';
-      btn.onclick = () => removeAgent(agent);
-      tag.appendChild(btn);
+      tag.innerText = agent;
+      const removeButton = document.createElement('button');
+      removeButton.innerText = '×';
+      removeButton.addEventListener('click', () => {
+        tag.remove();
+      });
+      tag.appendChild(removeButton);
       selectedAgentsContainer.appendChild(tag);
       agentSearch.value = '';
       agentDropdown.innerHTML = '';
-    }
+    };
 
-    function removeAgent(agent) {
-      selectedAgents = selectedAgents.filter(a => a !== agent);
-      [...selectedAgentsContainer.children].forEach(tag => {
-        if (tag.textContent.includes(agent)) tag.remove();
-      });
-    }
+    const generatePDF = (rapport) => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFontSize(12);
+      doc.text('Rapport de Police Municipale', 10, 10);
+      doc.text(`Date/Heure de rédaction : ${rapport.heureRedaction}`, 10, 20);
+      doc.text(`Grade : ${rapport.grade}`, 10, 30);
+      doc.text(`Agents : ${rapport.agents}`, 10, 40);
+      doc.text(`Infraction : ${rapport.infraction}`, 10, 50);
+      doc.text(`Identité / Coordonnées : ${rapport.identite}`, 10, 60);
+      doc.text(`Véhicule : ${rapport.vehicule}`, 10, 70);
+
+      const splitText = doc.splitTextToSize(`Déroulé de la situation : ${rapport.deroule}`, 180);
+      doc.text(splitText, 10, 80);
+
+      // Ajout des sauts de ligne après "Déroulé de la situation"
+      doc.text("", 10, 90);
+      doc.text("", 10, 100);
+
+      return doc;
+    };
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
 
-      const heureRedaction = document.getElementById('heureRedaction').value;
-      const grade = gradeSelect.value;
-      const infraction = document.getElementById('infraction').value;
-      const identite = document.getElementById('identite').value;
-      const vehicule = document.getElementById('vehicule').value;
-      const deroule = document.getElementById('deroule').value;
-
       const rapport = {
-        heureRedaction,
-        grade,
-        agents: selectedAgents.join(', '),
-        infraction,
-        identite,
-        vehicule,
-        deroule,
+        grade: gradeSelect.value,
+        agents: Array.from(selectedAgentsContainer.children).map(tag => tag.innerText.replace('×', '').trim()).join(', '),
+        heureRedaction: document.getElementById('heureRedaction').value,
+        infraction: document.getElementById('infraction').value,
+        identite: document.getElementById('identite').value,
+        vehicule: document.getElementById('vehicule').value,
+        deroule: document.getElementById('deroule').value,
         date: new Date().toLocaleString()
       };
 
-      const bulletins = JSON.parse(localStorage.getItem('bulletins') || '[]');
-      bulletins.push(rapport);
-      localStorage.setItem('bulletins', JSON.stringify(bulletins));
+      const pdfBlob = generatePDF(rapport);
+      window.open(URL.createObjectURL(pdfBlob.output('blob')), '_blank');
+    });
 
-      confirmationDate.textContent = `✅ Rapport enregistré le : ${rapport.date}`;
+    const downloadPDFButton = document.getElementById('downloadPDF');
+    downloadPDFButton.addEventListener('click', () => {
+      const rapport = {
+        grade: gradeSelect.value,
+        agents: Array.from(selectedAgentsContainer.children).map(tag => tag.innerText.replace('×', '').trim()).join(', '),
+        heureRedaction: document.getElementById('heureRedaction').value,
+        infraction: document.getElementById('infraction').value,
+        identite: document.getElementById('identite').value,
+        vehicule: document.getElementById('vehicule').value,
+        deroule: document.getElementById('deroule').value,
+        date: new Date().toLocaleString()
+      };
 
-      form.reset();
-      selectedAgents = [];
-      selectedAgentsContainer.innerHTML = '';
+      const doc = generatePDF(rapport);
+      doc.save('rapport_police_municipale.pdf');  // Télécharger le fichier PDF
     });
   </script>
-
 </body>
 </html>
