@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Bulletins - Police Municipale</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #2c3e50;
+      height: 100vh;
+      background: url('logoPM.png') no-repeat center center fixed;
+      background-size: 400px;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.307);
+      z-index: -1;
+    }
+
+    header {
+      background-color: #003366;
+      padding: 20px;
+      text-align: center;
+      border-bottom: 4px solid #007BFF;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 26px;
+      color: #fafafa;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 30px 20px;
+      background-color: rgba(255, 255, 255, 0.459);
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    form label {
+      font-weight: 600;
+      margin-top: 15px;
+      display: block;
+      font-size: 18px;
+    }
+
+    input, textarea {
+      display: block;
+      width: 100%;
+      margin-top: 8px;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      background-color: #fefefe;
+      box-sizing: border-box;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 14px 25px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .multi-select-dropdown div {
+      padding: 8px;
+      cursor: pointer;
+    }
+
+    .tag {
+      background: linear-gradient(145deg, #1e3c72, #2a5298);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 14px;
+      margin: 4px 4px 0 0;
+      display: inline-flex;
+      align-items: center;
+      font-size: 14px;
+      line-height: 1.2;
+    }
+
+    .tag button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      margin-left: 6px;
+      font-size: 14px;
+      padding: 0;
+    }
+
+    .inline-inputs {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+    }
+
+    .inline-inputs > div {
+      width: 50%;
+    }
+
+    @media screen and (max-width: 600px) {
+      .inline-inputs {
+        flex-direction: column;
+      }
+
+      .inline-inputs > div {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>📘 Bulletin de service - Police Municipale</h1>
+  </header>
+
+  <div class="container">
+    <form id="rapportForm">
+      <div class="inline-inputs">
+        <div>
+          <label for="debutService">Date/Heure de prise de service</label>
+          <input type="datetime-local" id="debutService" required>
+        </div>
+        <div>
+          <label for="finService">Date/Heure de fin de service</label>
+          <input type="datetime-local" id="finService" required>
+        </div>
+      </div>
+
+      <label for="agents">Agents</label>
+      <div class="multi-select" id="agents">
+        <input type="text" id="agentSearch" placeholder="Rechercher un agent..." autocomplete="off">
+        <div class="multi-select-dropdown" id="agentDropdown"></div>
+        <div id="selectedAgents"></div>
+      </div>
+
+      <label for="contenu">Contenu</label>
+      <textarea id="contenu" rows="5" placeholder="Détails de l’intervention..." required></textarea>
+
+      <div class="button-group">
+        <button type="button" id="previewPdfButton">📄 Aperçu PDF</button>
+        <button type="button" id="downloadPdfButton">📥 Télécharger PDF</button>
+      </div>
+    </form>
+
+    <div id="confirmationDate" class="date-enregistrement"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('rapportForm');
+    const agentSearch = document.getElementById('agentSearch');
+    const agentDropdown = document.getElementById('agentDropdown');
+    const selectedAgentsContainer = document.getElementById('selectedAgents');
+    const confirmationDate = document.getElementById('confirmationDate');
+
+    const availableAgents = [
+      "Luka TIERART", "Arnaud LEMOINE", "Lucas MARCHAND",
+      "Luke McDAVID", "Franck SKINNER", "Andrew TAYLOR",
+      "Louna SMITH", "Valentin BELADRI", "Matthieu SAG",
+      "Patrick LEGRAND", "Achille BUTEAU", "Anthonin HERNANDEZ",
+      "Flavien PARKS", "Aaron JACKSON", "Jeyson DIXON",
+    ];
+
+    let selectedAgents = [];
+
+    agentSearch.addEventListener('input', () => {
+      const query = agentSearch.value.toLowerCase();
+      const filtered = availableAgents.filter(a => a.toLowerCase().includes(query) && !selectedAgents.includes(a));
+      agentDropdown.innerHTML = '';
+      filtered.forEach(agent => {
+        const div = document.createElement('div');
+        div.textContent = agent;
+        div.onclick = () => addAgent(agent);
+        agentDropdown.appendChild(div);
+      });
+    });
+
+    function addAgent(agent) {
+      selectedAgents.push(agent);
+      const tag = document.createElement('div');
+      tag.className = 'tag';
+      tag.textContent = agent;
+      const btn = document.createElement('button');
+      btn.innerHTML = '&times;';
+      btn.onclick = () => removeAgent(agent);
+      tag.appendChild(btn);
+      selectedAgentsContainer.appendChild(tag);
+      agentSearch.value = '';
+      agentDropdown.innerHTML = '';
+    }
+
+    function removeAgent(agent) {
+      selectedAgents = selectedAgents.filter(a => a !== agent);
+      [...selectedAgentsContainer.children].forEach(tag => {
+        if (tag.textContent.includes(agent)) tag.remove();
+      });
+    }
+
+    function generatePdf() {
+      const contenu = document.getElementById('contenu').value;
+      const debutService = document.getElementById('debutService').value;
+      const finService = document.getElementById('finService').value;
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.text("Bulletin de service - Police Municipale", 14, 20);
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("Date/Heure de prise de service :", 14, 40);
+      doc.setFont("helvetica", "normal");
+      doc.text(debutService, 14, 50);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Date/Heure de fin de service :", 14, 60);
+      doc.setFont("helvetica", "normal");
+      doc.text(finService, 14, 70);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Agents :", 14, 80);
+      doc.setFont("helvetica", "normal");
+      doc.text(selectedAgents.join(', '), 14, 90);
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Contenu :", 14, 110);
+      doc.setFont("helvetica", "normal");
+
+      const splitContenu = doc.splitTextToSize(contenu, 180);
+      let currentY = 120;
+      doc.text(splitContenu, 14, currentY);
+
+      currentY += splitContenu.length * 7 + 10;
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Date d'enregistrement :", 14, currentY);
+      doc.setFont("helvetica", "normal");
+      doc.text(new Date().toLocaleString(), 14, currentY + 10);
+
+      return doc;
+    }
+
+    document.getElementById('previewPdfButton').addEventListener('click', () => {
+      const doc = generatePdf();
+      const pdfOutput = doc.output('bloburl');
+      window.open(pdfOutput, '_blank');
+    });
+
+    document.getElementById('downloadPdfButton').addEventListener('click', () => {
+      const doc = generatePdf();
+      doc.save('Bulletin_Service.pdf');
+    });
+  </script>
+
+</body>
+</html>
